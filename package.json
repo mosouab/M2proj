@@ -1,0 +1,30 @@
+{
+  "name": "m2proj",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "vitest run",
+    "check:permissions": "node --env-file=.env --import tsx scripts/check-permissions.ts"
+  },
+  "dependencies": {
+    "@fontsource-variable/doto": "^5.3.0",
+    "@fontsource/geist-mono": "^5.3.0",
+    "@supabase/supabase-js": "^2.119.2",
+    "astro": "^5.18.2",
+    "sortablejs": "^1.15.7"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@types/node": "^26.6.6",
+    "@types/sortablejs": "^1.15.9",
+    "happy-dom": "^21.0.4",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
+  }
+}
