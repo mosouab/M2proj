@@ -36,3 +36,13 @@ on that user. Give the new password to the rest of the team.
 
 - `npm run dev` · `npm test` · `npm run check` · `npm run build`
 - Spec and plan: `docs/superpowers/`
+
+## Deploy
+
+Pushing to `main` runs tests, builds and publishes to GitHub Pages. The build needs four repository
+variables (Settings → Secrets and variables → Actions → Variables): `PUBLIC_SUPABASE_URL`,
+`PUBLIC_SUPABASE_ANON_KEY`, `PUBLIC_TEAM_EMAIL`, `PUBLIC_ADMIN_EMAIL`. They are public by design;
+the passwords are never stored in GitHub.
+
+`keepalive.yml` calls the database every 3 days so the free Supabase project never pauses.
+GitHub stops scheduled workflows after 60 days without commits; if that happens, re-enable it in the Actions tab.
