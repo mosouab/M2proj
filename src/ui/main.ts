@@ -1,11 +1,11 @@
 import { getLang, t } from '../i18n';
-import { currentRole, signIn, signOut } from '../lib/auth';
+import { currentAdminMember, currentRole, rememberAdminMember, signIn, signOut } from '../lib/auth';
 import { listCategories } from '../lib/categories';
 import { LS_MEMBER } from '../lib/constants';
 import { toAppError } from '../lib/errors';
 import { listItems } from '../lib/items';
 import { readLocal, writeLocal } from '../lib/local';
-import { addMember, listMembers, pickValidMember } from '../lib/members';
+import { addMember, chooseMember, listMembers } from '../lib/members';
 import { config, db } from '../lib/supabase';
 import { listTasks } from '../lib/tasks';
 import { renderAdmin } from './admin-view';
@@ -39,7 +39,10 @@ const ctx: ViewContext = {
 
 async function enter(): Promise<void> {
   await loadAll();
-  state.meId = pickValidMember(readLocal(LS_MEMBER), state.members);
+  const adminMember = state.role === 'admin' ? await currentAdminMember(db) : null;
+  state.meId = chooseMember(state.role, adminMember, readLocal(LS_MEMBER), state.members);
+  // First admin login since this feature: save the name this browser already knew, so other devices skip the picker.
+  if (state.role === 'admin' && state.meId && state.meId !== adminMember) void run(() => rememberAdminMember(db, state.meId as string));
   if (state.meId) showApp();
   else showPicker();
 }
@@ -72,6 +75,8 @@ function showPicker(): void {
     onPick(id) {
       state.meId = id;
       writeLocal(LS_MEMBER, id);
+      // The admin is always the same person: remember it on the account so no device asks again.
+      if (state.role === 'admin') void run(() => rememberAdminMember(db, id));
       showApp();
     },
     async onAdd(name) {

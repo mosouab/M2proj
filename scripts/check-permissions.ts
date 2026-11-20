@@ -2,7 +2,7 @@
 // Run: npm run check:permissions   (needs .env with the PUBLIC_* values + M2_TEAM_PASSWORD + M2_ADMIN_PASSWORD)
 // Creates and removes its own "zz-check" data. Never run in CI.
 import { createClient } from '@supabase/supabase-js';
-import { signIn, signOut } from '../src/lib/auth';
+import { adminMemberOf, rememberAdminMember, signIn, signOut } from '../src/lib/auth';
 import { addCategory, deleteCategory, listCategories } from '../src/lib/categories';
 import { BUCKET } from '../src/lib/constants';
 import { toAppError, type ErrorCode } from '../src/lib/errors';
@@ -129,6 +129,15 @@ async function main(): Promise<void> {
   await signOut(team2);
   const { error: refreshError } = await team.auth.refreshSession();
   check('other devices stay logged in after one logs out', refreshError === null);
+
+  // The admin account remembers which member it is (so the admin never sees "Who are you?")
+  const savedBefore = adminMemberOf((await admin.auth.getUser()).data.user);
+  await rememberAdminMember(admin, checker.id);
+  const admin2 = client();
+  await signIn(admin2, ADMIN_EMAIL, env('M2_ADMIN_PASSWORD'));
+  check('the admin account remembers its member across logins', adminMemberOf((await admin2.auth.getUser()).data.user) === checker.id);
+  if (savedBefore) await rememberAdminMember(admin, savedBefore);
+  else await admin.auth.updateUser({ data: { m2proj_member: null } });
 
   // Admin can do everything
   check('a category with items cannot be deleted', await failsWith(() => deleteCategory(admin, category.id), 'category-not-empty'));

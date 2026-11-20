@@ -8,6 +8,22 @@ export function roleOf(user: { app_metadata?: Record<string, unknown> } | null |
   return role === 'team' || role === 'admin' ? role : null;
 }
 
+/** The member the admin account picked once; stored on the account so every device knows it's the same person. */
+export function adminMemberOf(user: { user_metadata?: Record<string, unknown> } | null | undefined): string | null {
+  const id = user?.user_metadata?.m2proj_member;
+  return typeof id === 'string' ? id : null;
+}
+
+export async function currentAdminMember(db: SupabaseClient): Promise<string | null> {
+  const { data } = await db.auth.getSession();
+  return adminMemberOf(data.session?.user);
+}
+
+export async function rememberAdminMember(db: SupabaseClient, memberId: string): Promise<void> {
+  const { error } = await db.auth.updateUser({ data: { m2proj_member: memberId } });
+  if (error) throw error;
+}
+
 export async function currentRole(db: SupabaseClient): Promise<Role> {
   const { data } = await db.auth.getSession();
   return roleOf(data.session?.user);

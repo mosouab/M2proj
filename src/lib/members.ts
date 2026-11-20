@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Role } from './auth';
 import { requireRows } from './errors';
 import type { Member } from './types';
 
@@ -26,6 +27,15 @@ export async function setMemberActive(db: SupabaseClient, id: string, active: bo
   const { data, error } = await db.from('members').update({ active }).eq('id', id).select('id');
   if (error) throw error;
   requireRows(data);
+}
+
+/** The admin is always the same person: their saved member wins over whatever this browser picked last. */
+export function chooseMember(role: Role, adminMember: string | null, stored: string | null, members: Member[]): string | null {
+  if (role === 'admin') {
+    const saved = pickValidMember(adminMember, members);
+    if (saved) return saved;
+  }
+  return pickValidMember(stored, members);
 }
 
 export function pickValidMember(storedId: string | null, members: Member[]): string | null {
