@@ -1,6 +1,6 @@
 # M2proj Team Hub — Design Spec
 
-Date: 2026-11-19 · Status: approved by Mo on 2026-11-19
+Date: 2026-11-19 · Status: implemented
 
 ## Goal
 
