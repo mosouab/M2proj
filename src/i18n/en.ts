@@ -84,6 +84,7 @@ export const en = {
   'error.too-big': 'File too big (50 MB max).',
   'error.bad-url': 'That link does not look valid.',
   'error.category-not-empty': 'This category is not empty. Delete its files and links first.',
+  'error.category-gone': 'This category no longer exists. The page was refreshed, pick another one.',
   'error.rate-limited': 'Too many attempts. Wait a minute and try again.',
   'error.unknown': 'Something went wrong. Try again.',
 } as const;

@@ -74,7 +74,7 @@ export function openItemForm(ctx: ViewContext): void {
         const r = await run(action);
         save.disabled = false;
         save.textContent = t('files.add');
-        if (r.ok) {
+        if (r.ok || r.error.code === 'category-gone') {
           modal.close();
           await ctx.refresh();
         }

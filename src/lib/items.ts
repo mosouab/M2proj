@@ -6,6 +6,17 @@ import { fileNameFromPath, isFileSizeOk, normalizeLink, storagePathFor } from '.
 
 const COLS = 'id,category_id,kind,title,url,storage_path,size_bytes,added_by,created_at';
 
+/** The category may have been deleted while the page was open (foreign key violation). */
+function categoryGoneOr(error: { code?: string; message?: string }): unknown {
+  return error.code === '23503' ? new AppError('category-gone', error.message) : error;
+}
+
+async function requireCategory(db: SupabaseClient, id: string): Promise<void> {
+  const { data, error } = await db.from('categories').select('id').eq('id', id).maybeSingle();
+  if (error) throw error;
+  if (!data) throw new AppError('category-gone');
+}
+
 export async function listItems(db: SupabaseClient): Promise<Item[]> {
   const { data, error } = await db.from('items').select(COLS).order('created_at', { ascending: false });
   if (error) throw error;
@@ -23,7 +34,7 @@ export async function addLink(
     .insert({ ...input, url, title: input.title.trim() || url, kind: 'link' })
     .select(COLS)
     .single();
-  if (error) throw error;
+  if (error) throw categoryGoneOr(error);
   return data as Item;
 }
 
@@ -34,6 +45,8 @@ export async function addFile(
   id: string = crypto.randomUUID(),
 ): Promise<Item> {
   if (!isFileSizeOk(input.file.size)) throw new AppError('too-big');
+  // Check before uploading: the team cannot delete objects, so a failed insert would leave an invisible file.
+  await requireCategory(db, input.category_id);
   const path = storagePathFor(input.fileName, id);
   const { error: uploadError } = await db.storage
     .from(BUCKET)
@@ -53,7 +66,7 @@ export async function addFile(
     .single();
   if (error) {
     await db.storage.from(BUCKET).remove([path]);
-    throw error;
+    throw categoryGoneOr(error);
   }
   return data as Item;
 }

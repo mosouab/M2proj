@@ -86,6 +86,7 @@ export const fr: Record<Key, string> = {
   'error.too-big': 'Fichier trop lourd (50 Mo max).',
   'error.bad-url': 'Ce lien ne semble pas valide.',
   'error.category-not-empty': "Cette catégorie n'est pas vide. Supprime d'abord ses fichiers et liens.",
+  'error.category-gone': "Cette catégorie n'existe plus. La page a été actualisée, choisis-en une autre.",
   'error.rate-limited': 'Trop de tentatives. Attends une minute et réessaie.',
   'error.unknown': 'Une erreur est survenue. Réessaie.',
 };

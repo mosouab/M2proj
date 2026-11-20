@@ -97,6 +97,14 @@ async function main(): Promise<void> {
   const download = await fetch(await fileUrl(team, file));
   check('the signed link downloads the same content', (await download.text()) === content);
 
+  // A category deleted while someone has the page open: clear error, no invisible orphan file
+  const ghost = crypto.randomUUID();
+  check('a link into a deleted category gets a clear error', await failsWith(() => addLink(team, { category_id: ghost, title: 'x', url: 'example.org', added_by: checker.id }), 'category-gone'));
+  const countObjects = async () => ((await admin.storage.from(BUCKET).list('', { limit: 1000 })).data ?? []).length;
+  const objectsBefore = await countObjects();
+  check('a file into a deleted category gets a clear error', await failsWith(() => addFile(team, { category_id: ghost, title: 'x.txt', file: new Blob(['x']), fileName: 'x.txt', added_by: checker.id }), 'category-gone'));
+  check('…and leaves no invisible file behind', (await countObjects()) === objectsBefore);
+
   // Anonymous visitors see nothing (data exists now, so empty means blocked)
   for (const table of ['members', 'categories', 'tasks', 'items']) {
     const { data, error } = await anon.from(table).select('id').limit(1);

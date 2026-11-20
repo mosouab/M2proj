@@ -6,6 +6,7 @@ export type ErrorCode =
   | 'too-big'
   | 'bad-url'
   | 'category-not-empty'
+  | 'category-gone'
   | 'rate-limited'
   | 'unknown';
 
