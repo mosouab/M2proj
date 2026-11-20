@@ -15,7 +15,7 @@ import { renderFiles } from './files-view';
 import { renderLogin, type LoginMode } from './login-view';
 import { renderPicker } from './picker-view';
 import { parseRoute } from './router';
-import { run, setAuthLostHandler } from './run';
+import { run, setAuthLostHandler, setSessionCheck } from './run';
 import { memberName, state } from './store';
 import { toast } from './toast';
 import { renderTopbar } from './topbar';
@@ -113,17 +113,26 @@ function showRetry(): void {
 }
 
 async function logout(): Promise<void> {
-  await signOut(db).catch(() => undefined);
+  // Clear the role first so the SIGNED_OUT event below is not mistaken for a lost session.
   state.role = null;
+  await signOut(db).catch(() => undefined);
   history.replaceState(null, '', location.pathname);
   showLogin();
 }
 
-setAuthLostHandler(() => {
+function authLost(): void {
+  if (!state.role) return;
   state.role = null;
   toast(t('error.auth'), 'error');
   void signOut(db).catch(() => undefined);
   showLogin();
+}
+
+setAuthLostHandler(authLost);
+setSessionCheck(async () => (await currentRole(db)) !== null);
+// Supabase drops the session itself when the refresh token is revoked (password change, "sign out all sessions").
+db.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_OUT') setTimeout(authLost, 0);
 });
 
 window.addEventListener('hashchange', () => {
