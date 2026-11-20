@@ -118,3 +118,8 @@ textarea { resize: vertical; }
 .toasts { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 100; width: min(440px, calc(100vw - 32px)); }
 .toast { background: var(--ink); color: var(--bg); border-radius: var(--radius); padding: 10px 14px; font-size: 12.5px; box-shadow: 3px 3px 0 0 var(--border-dark); }
 .toast.error { background: var(--danger); }
+
+/* ---------- phones: iOS Safari zooms the page when a focused control is under 16px ---------- */
+@media (max-width: 560px) {
+  input[type='text'], input[type='password'], input[type='date'], textarea, select, .card .move { font-size: 16px; }
+}
