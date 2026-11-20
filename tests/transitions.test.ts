@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupByStatus, isLate, planMove, sortColumn, STATUSES, todayLocal } from '../src/lib/transitions';
+import { groupByStatus, isLate, planAssign, planMove, sortColumn, STATUSES, todayLocal } from '../src/lib/transitions';
 import type { Status, Task } from '../src/lib/types';
 
 const NOW = '2026-11-19T10:00:00.000Z';
@@ -146,5 +146,40 @@ describe('sortColumn / groupByStatus', () => {
     expect(groups.waiting).toHaveLength(1);
     expect(groups.taken).toHaveLength(1);
     expect(groups.finished).toHaveLength(1);
+  });
+});
+
+describe('planAssign', () => {
+  const LEA = 'lea-id';
+  it('waiting → taken by the chosen teammate', () => {
+    expect(planAssign(VALID.waiting, LEA)).toEqual({
+      from: 'waiting',
+      fromOwner: null,
+      patch: { status: 'taken', taken_by: LEA, finished_at: null },
+    });
+  });
+  it('reassigns a taken task, guarded on its current owner', () => {
+    expect(planAssign(VALID.taken, LEA)).toEqual({
+      from: 'taken',
+      fromOwner: SAMI,
+      patch: { status: 'taken', taken_by: LEA, finished_at: null },
+    });
+  });
+  it('reopens a finished task for the chosen teammate', () => {
+    const plan = planAssign(VALID.finished, LEA);
+    expect(plan?.from).toBe('finished');
+    expect(plan?.patch).toEqual({ status: 'taken', taken_by: LEA, finished_at: null });
+  });
+  it('does nothing when the task is already taken by that teammate', () => {
+    expect(planAssign(VALID.taken, SAMI)).toBeNull();
+  });
+  it('always lands on a valid row (taken ⇒ owner set, no finished_at)', () => {
+    for (const from of STATUSES) {
+      const plan = planAssign(VALID[from], LEA);
+      if (!plan) continue;
+      const after = { ...VALID[from], ...plan.patch };
+      expect(after.taken_by, from).toBe(LEA);
+      expect(after.finished_at, from).toBeNull();
+    }
   });
 });

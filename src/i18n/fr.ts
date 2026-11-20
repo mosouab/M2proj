@@ -43,6 +43,16 @@ export const fr: Record<Key, string> = {
   'board.conflictMoved': "Quelqu'un l'a déjà déplacée vers « {status} ».",
   'board.gone': "Cette tâche n'existe plus.",
 
+  'board.select': 'Sélectionner',
+  'board.selectDone': 'Terminer la sélection',
+  'board.selectAll': 'tout',
+  'bulk.count': '{n} sélectionnée(s)',
+  'bulk.assignTo': 'Assigner à…',
+  'bulk.confirmDelete': "Supprimer {n} tâche(s) ? C'est définitif.",
+  'bulk.updated': '{n} modifiée(s).',
+  'bulk.skipped': "{n} ignorée(s) : quelqu'un les a changées entre-temps.",
+  'bulk.deleted': '{n} supprimée(s).',
+
   'task.title': 'Titre',
   'task.description': 'Description',
   'task.deadline': 'Échéance (facultative)',

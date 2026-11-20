@@ -119,6 +119,26 @@ textarea { resize: vertical; }
 .toast { background: var(--ink); color: var(--bg); border-radius: var(--radius); padding: 10px 14px; font-size: 12.5px; box-shadow: 3px 3px 0 0 var(--border-dark); }
 .toast.error { background: var(--danger); }
 
+/* ---------- bulk selection ---------- */
+.head-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.card.selectable { cursor: pointer; }
+.card.selectable:hover { transform: none; box-shadow: none; }
+.card.selected { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.card .pick { font-family: var(--font-mono); color: var(--muted); }
+.card.selected .pick { color: var(--ink); font-weight: 700; }
+.pick-all { float: right; background: none; border: none; padding: 0; font: inherit; font-family: var(--font-mono); font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--soft); cursor: pointer; }
+.pick-all:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.bulk-bar {
+  position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 20;
+  width: min(760px, calc(100vw - 32px)); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+  padding: 10px 14px; background: var(--surface); border: 1px solid var(--ink); border-radius: var(--radius);
+  box-shadow: 4px 4px 0 0 var(--border-dark); font-size: 12px;
+}
+.bulk-bar select { width: auto; flex: 1 1 150px; }
+.bulk-count { font-weight: 700; color: var(--ink); margin-right: auto; }
+body:has(.bulk-bar) .view { padding-bottom: 170px; }
+body:has(.bulk-bar) .toasts { bottom: 120px; }
+
 /* ---------- phones: iOS Safari zooms the page when a focused control is under 16px ---------- */
 @media (max-width: 560px) {
   input[type='text'], input[type='password'], input[type='date'], textarea, select, .card .move { font-size: 16px; }

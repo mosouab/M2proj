@@ -41,6 +41,16 @@ export const en = {
   'board.conflictMoved': 'Someone already moved it to "{status}".',
   'board.gone': 'This task no longer exists.',
 
+  'board.select': 'Select',
+  'board.selectDone': 'Done selecting',
+  'board.selectAll': 'all',
+  'bulk.count': '{n} selected',
+  'bulk.assignTo': 'Assign to…',
+  'bulk.confirmDelete': 'Delete {n} task(s)? This cannot be undone.',
+  'bulk.updated': '{n} updated.',
+  'bulk.skipped': '{n} skipped: someone changed them in the meantime.',
+  'bulk.deleted': '{n} deleted.',
+
   'task.title': 'Title',
   'task.description': 'Description',
   'task.deadline': 'Deadline (optional)',

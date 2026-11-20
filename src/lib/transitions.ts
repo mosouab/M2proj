@@ -38,6 +38,19 @@ export function planMove(
   }
 }
 
+export interface AssignPlan {
+  /** Status and owner the client saw; the update only applies if the row still has both. */
+  from: Status;
+  fromOwner: string | null;
+  patch: MovePatch;
+}
+
+/** Hand a task to a teammate: it becomes "taken" by them, whatever column it was in. */
+export function planAssign(task: Pick<Task, 'status' | 'taken_by'>, memberId: string): AssignPlan | null {
+  if (task.status === 'taken' && task.taken_by === memberId) return null;
+  return { from: task.status, fromOwner: task.taken_by, patch: { status: 'taken', taken_by: memberId, finished_at: null } };
+}
+
 export function todayLocal(d: Date = new Date()): string {
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');

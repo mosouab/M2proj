@@ -8,7 +8,7 @@ import { BUCKET } from '../src/lib/constants';
 import { toAppError, type ErrorCode } from '../src/lib/errors';
 import { addFile, addLink, deleteItem, fileUrl, listItems } from '../src/lib/items';
 import { addMember, listMembers, renameMember, setMemberActive } from '../src/lib/members';
-import { createTask, deleteTask, listTasks, moveTask } from '../src/lib/tasks';
+import { assignTasks, createTask, deleteTask, deleteTasks, listTasks, moveTask, moveTasks } from '../src/lib/tasks';
 
 function env(name: string): string {
   const value = process.env[name];
@@ -138,6 +138,22 @@ async function main(): Promise<void> {
   check('the admin account remembers its member across logins', adminMemberOf((await admin2.auth.getUser()).data.user) === checker.id);
   if (savedBefore) await rememberAdminMember(admin, savedBefore);
   else await admin.auth.updateUser({ data: { m2proj_member: null } });
+
+  // Bulk: several tasks at once, skipping the ones someone else changed in the meantime
+  const newTask = (title: string) => createTask(team, { title, description: '', deadline: null, created_by: checker.id });
+  const [b1, b2, b3] = [await newTask('zz-bulk 1'), await newTask('zz-bulk 2'), await newTask('zz-bulk 3')];
+  const bulkIds = [b1.id, b2.id, b3.id];
+  await moveTask(admin, b3, 'taken', checker.id); // someone takes b3 while this client still sees it waiting
+  const moved = await moveTasks(team, [b1, b2, b3], 'finished', checker.id);
+  check('bulk move changes the up-to-date tasks and skips the one someone changed', moved.done === 2 && moved.skipped === 1);
+  const fresh = (await listTasks(team)).filter((t) => bulkIds.includes(t.id));
+  const assigned = await assignTasks(team, fresh, checker.id);
+  check('bulk assign hands every task to the teammate (already theirs = untouched)', assigned.done === 2 && assigned.skipped === 0);
+  const afterAssign = (await listTasks(team)).filter((t) => bulkIds.includes(t.id));
+  check('…and they are all "taken" by that teammate', afterAssign.every((t) => t.status === 'taken' && t.taken_by === checker.id && t.finished_at === null));
+  check('bulk assign skips a task changed since it was loaded', (await assignTasks(team, [b1 /* stale: waiting */], checker.id)).skipped === 1);
+  check('team cannot bulk delete', await failsWith(() => deleteTasks(team, bulkIds), 'not-allowed'));
+  check('admin bulk delete removes them all', (await deleteTasks(admin, bulkIds)) === 3 && !(await listTasks(admin)).some((t) => bulkIds.includes(t.id)));
 
   // Admin can do everything
   check('a category with items cannot be deleted', await failsWith(() => deleteCategory(admin, category.id), 'category-not-empty'));
